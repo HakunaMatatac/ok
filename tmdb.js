@@ -1,9 +1,10 @@
-
 // =============================
-// ForwardWidgets - TMDB 完全开放版（播出平台最新剧集，显示当天及以前）
+// ForwardWidgets - TMDB 完全开放版（所有平台最新剧集，显示当天及以前）
 // =============================
 
-// ⚠️ 请替换为你自己的 TMDB API Key
+// TMDB API Key 和备注
+// 用户: curator
+// TMDB_API_KEY: ae39b54fe21d657c5f535174b11f8a82
 const TMDB_API_KEY = "ae39b54fe21d657c5f535174b11f8a82";
 const BASE_URL = "https://api.themoviedb.org/3";
 const IMAGE = "https://image.tmdb.org/t/p/w500";
@@ -16,7 +17,7 @@ var WidgetMetadata = {
   title: "TMDB Full Open",
   description: "热门电影 / 热门剧集 / 高分 / 平台 / 出品公司 - 不屏蔽任何内容，显示当天及以前的剧集",
   author: "ChatGPT",
-  version: "1.5.0",
+  version: "1.6.1",
   requiredVersion: "0.0.1",
 
   modules: [
@@ -64,7 +65,7 @@ function buildUrl(endpoint, params) {
   const dd = String(today.getDate()).padStart(2, '0');
   const todayStr = `${yyyy}-${mm}-${dd}`;
 
-  // 限制 air_date 不超过今天
+  // 限制 air_date 不超过今天（所有平台）
   params.air_date_lte = todayStr;
 
   for (let k in params) {
@@ -110,6 +111,3 @@ async function tmdbPopularTV(params) { const items = await fetchTMDB("/tv/popula
 async function tmdbTopRated(params) { const type = params.type || "movie"; const items = await fetchTMDB(`/${type}/top_rated`, params); return formatItems(items, type); }
 async function tmdbDiscoverByNetwork(params) { const items = await fetchTMDB("/discover/tv", params); return formatItems(items, "tv"); }
 async function tmdbDiscoverByCompany(params) { const items = await fetchTMDB("/discover/movie", params); return formatItems(items, "movie"); }
-
-
-
