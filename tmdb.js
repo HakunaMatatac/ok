@@ -1,7 +1,3 @@
-// =============================
-// ForwardWidgets - TMDB 完整版（带 Key，Forward 完全兼容）
-// ✅ 直接导入 Forward 可用
-// =============================
 
 // ⚠️ 请替换为你自己的 TMDB API Key
 const TMDB_API_KEY = "ae39b54fe21d657c5f535174b11f8a82";
@@ -14,9 +10,9 @@ const IMAGE = "https://image.tmdb.org/t/p/w500";
 var WidgetMetadata = {
   id: "tmdb_full_widget",
   title: "TMDB Full",
-  description: "热门电影 / 热门剧集 / 高分 / 平台 / 出品公司",
+  description: "热门电影 / 热门剧集 / 高分 / 播出平台 / 出品公司",
   author: "ChatGPT",
-  version: "1.1.0",
+  version: "1.2.0",
   requiredVersion: "0.0.1",
 
   modules: [
@@ -47,8 +43,12 @@ function buildUrl(endpoint, params) {
 async function fetchTMDB(endpoint, params = {}) {
   const url = buildUrl(endpoint, params);
   const res = await Widget.http.get(url);
-  const json = JSON.parse(res.data);
-  return json.results || [];
+
+  // Forward 返回的 res.data 已经是对象，无需 JSON.parse
+  const json = res.data;
+
+  // TMDB 可能返回 { results: [...] } 或者直接 array
+  return json.results || json || [];
 }
 
 // =============================
