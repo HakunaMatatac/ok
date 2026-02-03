@@ -10,7 +10,7 @@ var WidgetMetadata = {
   title: "TMDB资源模块",
   description: "只保留自己用到的",
   author: "curator",
-  version: "0.0.5",
+  version: "0.0.6",
   requiredVersion: "0.0.1",
 
   modules: [
