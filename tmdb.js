@@ -5,21 +5,46 @@ const BASE_URL = "https://api.themoviedb.org/3";
 const IMAGE = "https://image.tmdb.org/t/p/w500";
 
 // =============================
-// Widget Metadata
+// Widget Matata
 // =============================
 var WidgetMetadata = {
   id: "tmdb_full_open_widget",
   title: "TMDB Full Open",
-  description: "热门电影 / 热门剧集 / 高分 / 播出平台 / 出品公司 - 不屏蔽任何内容",
-  author: "ChatGPT",
-  version: "1.3.0",
+  description: "热门电影 / 热门剧集 / 高分 / 平台 / 出品公司 - 不屏蔽任何内容，显示所有国内外平台最新剧集",
+  author: "Matata",
+  version: "1.4.0",
   requiredVersion: "0.0.1",
 
   modules: [
     { title: "🔥 TMDB 热门电影", functionName: "tmdbPopularMovies", cacheDuration: 1800, params: [ { name: "language", title: "语言", type: "language", value: "zh-CN" }, { name: "page", title: "页码", type: "page" } ] },
     { title: "🔥 TMDB 热门剧集", functionName: "tmdbPopularTV", cacheDuration: 1800, params: [ { name: "language", title: "语言", type: "language", value: "zh-CN" }, { name: "page", title: "页码", type: "page" } ] },
     { title: "⭐ TMDB 高分内容", functionName: "tmdbTopRated", cacheDuration: 21600, params: [ { name: "type", title: "类型", type: "enumeration", enumOptions: [ { title: "电影", value: "movie" }, { title: "剧集", value: "tv" } ], value: "movie" }, { name: "language", title: "语言", type: "language", value: "zh-CN" }, { name: "page", title: "页码", type: "page" } ] },
-    { title: "📺 TMDB 播出平台", functionName: "tmdbDiscoverByNetwork", cacheDuration: 21600, params: [ { name: "with_networks", title: "播出平台", type: "enumeration", value: "213", enumOptions: [ { title: "Netflix", value: "213" }, { title: "Disney+", value: "2739" }, { title: "Apple TV+", value: "2552" }, { title: "HBO", value: "49" }, { title: "Amazon", value: "1024" }, { title: "Hulu", value: "453" }, { title: "BBC", value: "332" } ] }, { name: "sort_by", title: "排序", type: "enumeration", value: "popularity.desc", enumOptions: [ { title: "人气最高", value: "popularity.desc" }, { title: "评分最高", value: "vote_average.desc" } ] }, { name: "language", title: "语言", type: "language", value: "zh-CN" }, { name: "page", title: "页码", type: "page" } ] },
+    { title: "📺 TMDB 播出平台 (最新剧集)", functionName: "tmdbDiscoverByNetwork", cacheDuration: 21600, params: [ 
+      { name: "with_networks", title: "播出平台", type: "enumeration", value: "", enumOptions: [
+        { title: "全部平台", value: "" },
+        { title: "Netflix", value: "213" },
+        { title: "Disney+", value: "2739" },
+        { title: "Apple TV+", value: "2552" },
+        { title: "HBO", value: "49" },
+        { title: "Amazon", value: "1024" },
+        { title: "Hulu", value: "453" },
+        { title: "BBC", value: "332" },
+        { title: "Tencent", value: "2007" },
+        { title: "iQiyi", value: "1330" },
+        { title: "Youku", value: "1419" },
+        { title: "Bilibili", value: "1605" },
+        { title: "MGTV", value: "1631" },
+        { title: "TVB", value: "48" }
+      ] },
+      { name: "sort_by", title: "排序方式", type: "enumeration", value: "first_air_date.desc", enumOptions: [
+        { title: "最新上映↓", value: "first_air_date.desc" },
+        { title: "上映时间↑", value: "first_air_date.asc" },
+        { title: "人气最高", value: "popularity.desc" },
+        { title: "评分最高", value: "vote_average.desc" }
+      ] },
+      { name: "language", title: "语言", type: "language", value: "zh-CN" },
+      { name: "page", title: "页码", type: "page" }
+    ] },
     { title: "🎬 TMDB 出品公司", functionName: "tmdbDiscoverByCompany", cacheDuration: 21600, params: [ { name: "with_companies", title: "出品公司", type: "enumeration", value: "420", enumOptions: [ { title: "Marvel", value: "420" }, { title: "Pixar", value: "3" }, { title: "Disney", value: "2" }, { title: "Warner Bros.", value: "174" }, { title: "Paramount", value: "4" }, { title: "Universal", value: "33" }, { title: "Columbia", value: "5" }, { title: "A24", value: "41077" } ] }, { name: "sort_by", title: "排序", type: "enumeration", value: "popularity.desc", enumOptions: [ { title: "人气最高", value: "popularity.desc" }, { title: "评分最高", value: "vote_average.desc" } ] }, { name: "language", title: "语言", type: "language", value: "zh-CN" }, { name: "page", title: "页码", type: "page" } ] }
   ]
 };
@@ -43,14 +68,12 @@ function buildUrl(endpoint, params) {
 async function fetchTMDB(endpoint, params = {}) {
   const url = buildUrl(endpoint, params);
   const res = await Widget.http.get(url);
-
-  // Forward 返回的 res.data 已经是对象，无需 JSON.parse
   const json = res.data;
   return json.results || json || [];
 }
 
 // =============================
-// 数据格式化 - 不再过滤
+// 数据格式化 - 完全开放
 // =============================
 function formatItems(items, mediaType) {
   return items.map(i => ({
@@ -74,4 +97,5 @@ async function tmdbPopularTV(params) { const items = await fetchTMDB("/tv/popula
 async function tmdbTopRated(params) { const type = params.type || "movie"; const items = await fetchTMDB(`/${type}/top_rated`, params); return formatItems(items, type); }
 async function tmdbDiscoverByNetwork(params) { const items = await fetchTMDB("/discover/tv", params); return formatItems(items, "tv"); }
 async function tmdbDiscoverByCompany(params) { const items = await fetchTMDB("/discover/movie", params); return formatItems(items, "movie"); }
+
 
