@@ -8,9 +8,9 @@ const IMAGE = "https://image.tmdb.org/t/p/w500";
 var WidgetMetadata = {
   id: "curator-tmdb-widget",
   title: "TMDB资源",
-  description: "按自己喜好的做",
+  description: "全球最新电影+剧集，完全自用",
   author: "curator",
-  version: "1.9.1",
+  version: "2.0.0",
   requiredVersion: "0.0.1",
 
   modules: [
@@ -93,97 +93,15 @@ var WidgetMetadata = {
       ] 
     },
 
-    // 5️⃣ 播出平台（国内外全平台）
-    {
-      title: "TMDB 播出平台",
-      description: "按播出平台和内容类型筛选剧集内容",
-      requiresWebView: false,
-      functionName: "tmdbDiscoverByNetwork",
-      cacheDuration: 60, // 60秒刷新
-      params: [
-        {
-          name: "with_networks",
-          title: "播出平台",
-          type: "enumeration",
-          description: "选择一个平台以查看其剧集内容",
-          value: "",
-          enumOptions: [
-            { title: "全部", value: "" },
-            { title: "Tencent", value: "2007" },
-            { title: "iQiyi", value: "1330" },
-            { title: "Youku", value: "1419" },
-            { title: "Bilibili", value: "1605" },
-            { title: "MGTV", value: "1631" },
-            { title: "Netflix", value: "213" },
-            { title: "Disney+", value: "2739" },
-            { title: "HBO", value: "49" },
-            { title: "HBO Max", value: "3186" },
-            { title: "Apple TV+", value: "2552" },
-            { title: "Hulu", value: "453" },
-            { title: "Amazon Prime Video", value: "1024" },
-            { title: "FOX", value: "19" },
-            { title: "Paramount", value: "576" },
-            { title: "Paramount+", value: "4330" },
-            { title: "TV Tokyo", value: "94" },
-            { title: "BBC One", value: "332" },
-            { title: "BBC Two", value: "295" },
-            { title: "NBC", value: "6" },
-            { title: "AMC+", value: "174" },
-            { title: "We TV", value: "3732" },
-            { title: "Viu TV", value: "2146" },
-            { title: "TVB", value: "48" }
-          ]
-        },
-        {
-          name: "with_genres",
-          title: "🎭 内容类型",
-          type: "enumeration",
-          value: "",
-          enumOptions: [
-            { title: "全部类型", value: "" },
-            { title: "犯罪", value: "80" },
-            { title: "动画", value: "16" },
-            { title: "喜剧", value: "35" },
-            { title: "剧情", value: "18" },
-            { title: "家庭", value: "10751" },
-            { title: "儿童", value: "10762" },
-            { title: "悬疑", value: "9648" },
-            { title: "真人秀", value: "10764" },
-            { title: "脱口秀", value: "10767" },
-            { title: "肥皂剧", value: "10766" },
-            { title: "纪录片", value: "99" },
-            { title: "动作与冒险", value: "10759" },
-            { title: "科幻与奇幻", value: "10765" },
-            { title: "战争与政治", value: "10768" }
-          ]
-        },
-        {
-          name: "air_status",
-          title: "上映状态",
-          type: "enumeration",
-          value: "released",
-          enumOptions: [
-            { title: "已上映", value: "released" },
-            { title: "未上映", value: "upcoming" },
-            { title: "全部", value: "" }
-          ]
-        },
-        {
-          name: "sort_by",
-          title: "🔢 排序方式",
-          type: "enumeration",
-          value: "first_air_date.desc",
-          enumOptions: [
-            { title: "上映时间↓", value: "first_air_date.desc" },
-            { title: "上映时间↑", value: "first_air_date.asc" },
-            { title: "人气最高", value: "popularity.desc" },
-            { title: "评分最高", value: "vote_average.desc" },
-            { title: "最多投票", value: "vote_count.desc" }
-          ]
-        },
-        { name: "page", title: "页码", type: "page" },
-        { name: "language", title: "语言", type: "language", value: "zh-CN" }
-      ]
+    // 5️⃣ 播出平台（国内外） - 今日及以前资源，电影+剧集
+    { 
+      title: "TMDB 播出平台（国内外）", 
+      functionName: "tmdbDiscoverAllNetwork", 
+      cacheDuration: 60, 
+      params: [ 
+        { name: "language", title: "语言", type: "language", value: "zh-CN" }, 
+        { name: "page", title: "页码", type: "page" }
+      ] 
     }
   ]
 };
@@ -212,10 +130,11 @@ async function fetchTMDB(endpoint, params = {}) {
 }
 
 // =============================
-// 格式化 + 过滤（评分>=4 & 必须有封面）
-function formatItems(items, mediaType) {
+// 格式化函数
+// =============================
+function formatItems(items, mediaType, filterScore = false) {
   return items
-    .filter(i => i.vote_average >= 4 && i.poster_path)
+    .filter(i => i.poster_path && (!filterScore || i.vote_average >= 4))
     .map(i => ({
       id: i.id.toString(),
       type: "tmdb",
@@ -231,38 +150,62 @@ function formatItems(items, mediaType) {
 
 // =============================
 // 模块实现函数
+// =============================
 async function tmdbPopularMovies(params) { 
   const items = await fetchTMDB("/movie/popular", params); 
-  return formatItems(items, "movie"); 
+  return formatItems(items, "movie", true); 
 }
 
 async function tmdbPopularTV(params) { 
   const items = await fetchTMDB("/tv/popular", params); 
-  return formatItems(items, "tv"); 
+  return formatItems(items, "tv", true); 
 }
 
 async function tmdbTopRated(params) { 
   const type = params.type || "movie"; 
   const items = await fetchTMDB(`/${type}/top_rated`, params); 
-  return formatItems(items, type); 
+  return formatItems(items, type, true); 
 }
 
 async function tmdbDiscoverByCompany(params) { 
   const items = await fetchTMDB("/discover/movie", params); 
-  return formatItems(items, "movie"); 
+  return formatItems(items, "movie", true); 
 }
 
-async function tmdbDiscoverByNetwork(params) {
-  // global first_air_date.lte 自动限制今天及以前
+// =============================
+// 播出平台模块 - 今日及以前，电影+剧集
+// =============================
+async function tmdbDiscoverAllNetwork(params) {
   const today = new Date();
   const yyyy = today.getFullYear();
   const mm = String(today.getMonth() + 1).padStart(2, '0');
   const dd = String(today.getDate()).padStart(2, '0');
   const todayStr = `${yyyy}-${mm}-${dd}`;
 
-  params['first_air_date.lte'] = todayStr;
+  let allItems = [];
 
-  const page = params.page || 1;
-  const items = await fetchTMDB("/discover/tv", params);
-  return formatItems(items, "tv");
+  // 电影
+  let page = 1;
+  const MAX_PAGES = 5;
+  while (page <= MAX_PAGES) {
+    params.page = page;
+    params['release_date.lte'] = todayStr;
+    const movies = await fetchTMDB("/discover/movie", params);
+    if (!movies || movies.length === 0) break;
+    allItems = allItems.concat(movies);
+    page++;
+  }
+
+  // 剧集
+  page = 1;
+  while (page <= MAX_PAGES) {
+    params.page = page;
+    params['first_air_date.lte'] = todayStr;
+    const tvs = await fetchTMDB("/discover/tv", params);
+    if (!tvs || tvs.length === 0) break;
+    allItems = allItems.concat(tvs);
+    page++;
+  }
+
+  return formatItems(allItems, null, false); // 不过滤评分，只过滤没有封面
 }
