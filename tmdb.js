@@ -10,7 +10,7 @@ var WidgetMetadata = {
   title: "TMDB资源模块",
   description: "趋势、热榜、平台一站式的资源模块",
   author: "Bai",
-  version: "0.0.8",
+  version: "0.0.9",
   requiredVersion: "0.0.1",
 
   modules: [
@@ -115,7 +115,7 @@ function buildUrl(endpoint, params) {
   const dd = String(today.getDate()).padStart(2, '0');
   const todayStr = `${yyyy}-${mm}-${dd}`;
 
-  if (endpoint.includes("/discover/tv")) {
+  if (endpoint.includes("/discover/tv") && !params['first_air_date.lte']) {
     params['first_air_date.lte'] = todayStr;
   }
 
@@ -133,12 +133,17 @@ function buildUrl(endpoint, params) {
 async function fetchTMDB(endpoint, params = {}) {
   const url = buildUrl(endpoint, params);
   const res = await Widget.http.get(url);
-  const json = res.data;
+  let json;
+  try { 
+      json = typeof res.data === "string" ? JSON.parse(res.data) : res.data; 
+  } catch(e) { 
+      json = {}; 
+  }
   return json.results || json || [];
 }
 
 // =============================
-// 数据格式化函数（自适应中文标题 + 人物显示姓名）
+// 数据格式化函数
 // =============================
 function formatItems(items, mediaType) {
   return items
@@ -148,10 +153,10 @@ function formatItems(items, mediaType) {
 
       switch (i.media_type) {
         case 'movie':
-          title = (i.title && i.title !== i.original_title) ? i.title : i.original_title;
+          title = i.title || i.original_title;
           break;
         case 'tv':
-          title = (i.name && i.name !== i.original_name) ? i.name : i.original_name;
+          title = i.name || i.original_name;
           break;
         case 'person':
           title = i.name || i.original_name;
@@ -165,7 +170,7 @@ function formatItems(items, mediaType) {
       return {
         id: i.id.toString(),
         type: "tmdb",
-        mediaType: i.media_type === "person" ? "person" : (mediaType || (i.title ? "movie" : "tv")),
+        mediaType: mediaType || (i.title ? "movie" : "tv"),
         title: title,
         posterPath: IMAGE + i.poster_path,
         backdropPath: i.backdrop_path ? IMAGE + i.backdrop_path : undefined,
@@ -227,7 +232,7 @@ async function tmdbDiscoverByCompany(params) {
       releaseDate: i.release_date || i.first_air_date,
       rating: i.vote_average,
       description: i.overview,
-      company: companyMap[params.with_companies] || "未知公司"
+      company: companyMap[params.with_companies] || params.with_companies || "未知公司"
     }));
 }
 
