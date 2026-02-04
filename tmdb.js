@@ -10,40 +10,137 @@ var WidgetMetadata = {
   title: "TMDB资源模块",
   description: "",
   author: "Bai",
-version: "0.0.8",
+  version: "0.0.9",
   requiredVersion: "0.0.1",
 
   modules: [
-    { title: "TMDB 热门电影", functionName: "tmdbPopularMovies", cacheDuration: 1800, params: [ { name: "language", title: "语言", type: "language", value: "zh-CN" }, { name: "page", title: "页码", type: "page" } ] },
-    { title: "TMDB 热门剧集", functionName: "tmdbPopularTV", cacheDuration: 1800, params: [ { name: "language", title: "语言", type: "language", value: "zh-CN" }, { name: "page", title: "页码", type: "page" } ] },
-    { title: "TMDB 高分内容", functionName: "tmdbTopRated", cacheDuration: 21600, params: [ { name: "type", title: "类型", type: "enumeration", enumOptions: [ { title: "电影", value: "movie" }, { title: "剧集", value: "tv" } ], value: "movie" }, { name: "language", title: "语言", type: "language", value: "zh-CN" }, { name: "page", title: "页码", type: "page" } ] },
-    { title: "TMDB 播出平台", functionName: "tmdbDiscoverByNetwork", cacheDuration: 21600, params: [ 
-      { name: "with_networks", title: "播出平台", type: "enumeration", value: "", enumOptions: [
-        { title: "全部平台", value: "" },
-        { title: "Netflix", value: "213" },
-        { title: "Disney+", value: "2739" },
-        { title: "Apple TV+", value: "2552" },
-        { title: "HBO", value: "49" },
-        { title: "Amazon", value: "1024" },
-        { title: "Hulu", value: "453" },
-        { title: "BBC", value: "332" },
-        { title: "Tencent", value: "2007" },
-        { title: "iQiyi", value: "1330" },
-        { title: "Youku", value: "1419" },
-        { title: "Bilibili", value: "1605" },
-        { title: "MGTV", value: "1631" },
-        { title: "TVB", value: "48" }
-      ] },
-      { name: "sort_by", title: "排序方式", type: "enumeration", value: "first_air_date.desc", enumOptions: [
-        { title: "最新上映↓", value: "first_air_date.desc" },
-        { title: "上映时间↑", value: "first_air_date.asc" },
-        { title: "人气最高", value: "popularity.desc" },
-        { title: "评分最高", value: "vote_average.desc" }
-      ] },
-      { name: "language", title: "语言", type: "language", value: "zh-CN" },
-      { name: "page", title: "页码", type: "page" }
-    ] },
-    { title: "TMDB 出品公司", functionName: "tmdbDiscoverByCompany", cacheDuration: 21600, params: [ { name: "with_companies", title: "出品公司", type: "enumeration", value: "420", enumOptions: [ { title: "Marvel", value: "420" }, { title: "Pixar", value: "3" }, { title: "Disney", value: "2" }, { title: "Warner Bros.", value: "174" }, { title: "Paramount", value: "4" }, { title: "Universal", value: "33" }, { title: "Columbia", value: "5" }, { title: "A24", value: "41077" } ] }, { name: "sort_by", title: "排序", type: "enumeration", value: "popularity.desc", enumOptions: [ { title: "人气最高", value: "popularity.desc" }, { title: "评分最高", value: "vote_average.desc" } ] }, { name: "language", title: "语言", type: "language", value: "zh-CN" }, { name: "page", title: "页码", type: "page" } ] }
+    // 今日趋势
+    { 
+      title: "TMDB 今日趋势", 
+      functionName: "tmdbTrendingToday", 
+      cacheDuration: 900, 
+      params: [ 
+        { name: "media_type", title: "类型", type: "enumeration", value: "all", enumOptions: [
+            { title: "全部", value: "all" },
+            { title: "电影", value: "movie" },
+            { title: "剧集", value: "tv" }
+          ] 
+        }, 
+        { name: "language", title: "语言", type: "language", value: "zh-CN" }, 
+        { name: "page", title: "页码", type: "page" } 
+      ] 
+    },
+    // 本周趋势
+    { 
+      title: "TMDB 本周趋势", 
+      functionName: "tmdbTrendingWeek", 
+      cacheDuration: 900, 
+      params: [ 
+        { name: "media_type", title: "类型", type: "enumeration", value: "all", enumOptions: [
+            { title: "全部", value: "all" },
+            { title: "电影", value: "movie" },
+            { title: "剧集", value: "tv" }
+          ] 
+        }, 
+        { name: "language", title: "语言", type: "language", value: "zh-CN" }, 
+        { name: "page", title: "页码", type: "page" } 
+      ] 
+    },
+    // 热门剧集
+    { 
+      title: "TMDB 热门剧集", 
+      functionName: "tmdbPopularTV", 
+      cacheDuration: 1800, 
+      params: [ 
+        { name: "language", title: "语言", type: "language", value: "zh-CN" }, 
+        { name: "page", title: "页码", type: "page" } 
+      ] 
+    },
+    // 热门电影
+    { 
+      title: "TMDB 热门电影", 
+      functionName: "tmdbPopularMovies", 
+      cacheDuration: 1800, 
+      params: [ 
+        { name: "language", title: "语言", type: "language", value: "zh-CN" }, 
+        { name: "page", title: "页码", type: "page" } 
+      ] 
+    },
+    // 播出平台
+    { 
+      title: "TMDB 播出平台", 
+      functionName: "tmdbDiscoverByNetwork", 
+      cacheDuration: 21600, 
+      params: [ 
+        { name: "with_networks", title: "播出平台", type: "enumeration", value: "", enumOptions: [
+            { title: "全部平台", value: "" },
+            { title: "Netflix", value: "213" },
+            { title: "Disney+", value: "2739" },
+            { title: "Apple TV+", value: "2552" },
+            { title: "HBO", value: "49" },
+            { title: "Amazon", value: "1024" },
+            { title: "Hulu", value: "453" },
+            { title: "BBC", value: "332" },
+            { title: "Tencent", value: "2007" },
+            { title: "iQiyi", value: "1330" },
+            { title: "Youku", value: "1419" },
+            { title: "Bilibili", value: "1605" },
+            { title: "MGTV", value: "1631" },
+            { title: "TVB", value: "48" }
+          ] 
+        },
+        { name: "sort_by", title: "排序方式", type: "enumeration", value: "first_air_date.desc", enumOptions: [
+            { title: "最新上映↓", value: "first_air_date.desc" },
+            { title: "上映时间↑", value: "first_air_date.asc" },
+            { title: "人气最高", value: "popularity.desc" },
+            { title: "评分最高", value: "vote_average.desc" }
+          ] 
+        },
+        { name: "language", title: "语言", type: "language", value: "zh-CN" },
+        { name: "page", title: "页码", type: "page" }
+      ] 
+    },
+    // 高分内容
+    { 
+      title: "TMDB 高分内容", 
+      functionName: "tmdbTopRated", 
+      cacheDuration: 21600, 
+      params: [ 
+        { name: "type", title: "类型", type: "enumeration", enumOptions: [ 
+            { title: "电影", value: "movie" }, 
+            { title: "剧集", value: "tv" } 
+          ], value: "movie" 
+        }, 
+        { name: "language", title: "语言", type: "language", value: "zh-CN" }, 
+        { name: "page", title: "页码", type: "page" } 
+      ] 
+    },
+    // 出品公司
+    { 
+      title: "TMDB 出品公司", 
+      functionName: "tmdbDiscoverByCompany", 
+      cacheDuration: 21600, 
+      params: [ 
+        { name: "with_companies", title: "出品公司", type: "enumeration", value: "420", enumOptions: [
+            { title: "Marvel", value: "420" },
+            { title: "Pixar", value: "3" },
+            { title: "Disney", value: "2" },
+            { title: "Warner Bros.", value: "174" },
+            { title: "Paramount", value: "4" },
+            { title: "Universal", value: "33" },
+            { title: "Columbia", value: "5" },
+            { title: "A24", value: "41077" }
+          ] 
+        },
+        { name: "sort_by", title: "排序", type: "enumeration", value: "popularity.desc", enumOptions: [
+            { title: "人气最高", value: "popularity.desc" },
+            { title: "评分最高", value: "vote_average.desc" }
+          ] 
+        },
+        { name: "language", title: "语言", type: "language", value: "zh-CN" },
+        { name: "page", title: "页码", type: "page" }
+      ] 
+    }
   ]
 };
 
@@ -58,7 +155,6 @@ function buildUrl(endpoint, params) {
   const dd = String(today.getDate()).padStart(2, '0');
   const todayStr = `${yyyy}-${mm}-${dd}`;
 
-  // 强制限制首播日期不晚于今天（适用于全部平台）
   if (endpoint.includes("/discover/tv")) {
     params['first_air_date.lte'] = todayStr;
   }
@@ -82,16 +178,15 @@ async function fetchTMDB(endpoint, params = {}) {
 }
 
 // =============================
-// 数据格式化 - 只保留有封面 + TV 显示中文名
+// 数据格式化
 // =============================
 function formatItems(items, mediaType) {
   return items
-    .filter(i => i.poster_path && i.poster_path.trim() !== "") // 只保留有封面
+    .filter(i => i.poster_path && i.poster_path.trim() !== "")
     .map(i => ({
       id: i.id.toString(),
       type: "tmdb",
       mediaType: mediaType || (i.title ? "movie" : "tv"),
-      // 修改这里：TV 使用中文名称，电影使用中文名称
       title: mediaType === "tv" ? (i.name || i.original_name) : (i.title || i.original_title),
       posterPath: IMAGE + i.poster_path,
       backdropPath: i.backdrop_path ? IMAGE + i.backdrop_path : undefined,
@@ -102,10 +197,42 @@ function formatItems(items, mediaType) {
 }
 
 // =============================
-// 模块实现函数
+// 模块函数
 // =============================
-async function tmdbPopularMovies(params) { const items = await fetchTMDB("/movie/popular", params); return formatItems(items, "movie"); }
-async function tmdbPopularTV(params) { const items = await fetchTMDB("/tv/popular", params); return formatItems(items, "tv"); }
-async function tmdbTopRated(params) { const type = params.type || "movie"; const items = await fetchTMDB(`/${type}/top_rated`, params); return formatItems(items, type); }
-async function tmdbDiscoverByNetwork(params) { const items = await fetchTMDB("/discover/tv", params); return formatItems(items, "tv"); }
-async function tmdbDiscoverByCompany(params) { const items = await fetchTMDB("/discover/movie", params); return formatItems(items, "movie"); }
+async function tmdbPopularMovies(params) { 
+  const items = await fetchTMDB("/movie/popular", params); 
+  return formatItems(items, "movie"); 
+}
+
+async function tmdbPopularTV(params) { 
+  const items = await fetchTMDB("/tv/popular", params); 
+  return formatItems(items, "tv"); 
+}
+
+async function tmdbTopRated(params) { 
+  const type = params.type || "movie"; 
+  const items = await fetchTMDB(`/${type}/top_rated`, params); 
+  return formatItems(items, type); 
+}
+
+async function tmdbDiscoverByNetwork(params) { 
+  const items = await fetchTMDB("/discover/tv", params); 
+  return formatItems(items, "tv"); 
+}
+
+async function tmdbDiscoverByCompany(params) { 
+  const items = await fetchTMDB("/discover/movie", params); 
+  return formatItems(items, "movie"); 
+}
+
+async function tmdbTrendingToday(params) {
+  const type = params.media_type || "all";
+  const items = await fetchTMDB(`/trending/${type}/day`, params);
+  return formatItems(items, type === "movie" ? "movie" : "tv");
+}
+
+async function tmdbTrendingWeek(params) {
+  const type = params.media_type || "all";
+  const items = await fetchTMDB(`/trending/${type}/week`, params);
+  return formatItems(items, type === "movie" ? "movie" : "tv");
+}
