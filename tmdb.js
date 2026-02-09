@@ -9,18 +9,24 @@ var WidgetMetadata = {
   title: "TMDB资源模块",
   description: "趋势、热榜、平台一站式的资源模块",
   author: "白馆长",
-  version: "0.0.2",
+  version: "0.0.3",
   requiredVersion: "0.0.1",
 
   modules: [
+    // =============================
+    // 今日趋势
     { 
       title: "TMDB 今日趋势",
       functionName: "tmdbTrendingToday",
-      cacheDuration: 900,
+      cacheDuration: 3600,
       params: [
-        { name: "media_type", title: "类型", type: "enumeration", value: "all",
+        { 
+          name: "media_type", 
+          title: "显示类型", 
+          type: "enumeration", 
+          value: "all",
           enumOptions: [
-            { title: "全部", value: "all" },
+            { title: "全部趋势", value: "all" },
             { title: "电影", value: "movie" },
             { title: "剧集", value: "tv" }
           ]
@@ -29,14 +35,20 @@ var WidgetMetadata = {
         { name: "page", title: "页码", type: "page" }
       ]
     },
+
+    // 本周趋势
     { 
       title: "TMDB 本周趋势",
       functionName: "tmdbTrendingWeek",
-      cacheDuration: 900,
+      cacheDuration: 3600,
       params: [
-        { name: "media_type", title: "类型", type: "enumeration", value: "all",
+        { 
+          name: "media_type", 
+          title: "显示类型", 
+          type: "enumeration", 
+          value: "all",
           enumOptions: [
-            { title: "全部", value: "all" },
+            { title: "全部趋势", value: "all" },
             { title: "电影", value: "movie" },
             { title: "剧集", value: "tv" }
           ]
@@ -45,9 +57,17 @@ var WidgetMetadata = {
         { name: "page", title: "页码", type: "page" }
       ]
     },
+
+    // 热门电影
     { title: "TMDB 热门电影", functionName: "tmdbPopularMovies", cacheDuration: 1800, params: [ { name: "language", title: "语言", type: "language", value: "zh-CN" }, { name: "page", title: "页码", type: "page" } ] },
+
+    // 热门剧集
     { title: "TMDB 热门剧集", functionName: "tmdbPopularTV", cacheDuration: 1800, params: [ { name: "language", title: "语言", type: "language", value: "zh-CN" }, { name: "page", title: "页码", type: "page" } ] },
+
+    // 高分内容
     { title: "TMDB 高分内容", functionName: "tmdbTopRated", cacheDuration: 21600, params: [ { name: "type", title: "类型", type: "enumeration", enumOptions: [ { title: "电影", value: "movie" }, { title: "剧集", value: "tv" } ], value: "movie" }, { name: "language", title: "语言", type: "language", value: "zh-CN" }, { name: "page", title: "页码", type: "page" } ] },
+
+    // 播出平台
     { 
       title: "TMDB 播出平台", 
       functionName: "tmdbDiscoverByNetwork", 
@@ -79,6 +99,8 @@ var WidgetMetadata = {
         { name: "page", title: "页码", type: "page" }
       ] 
     },
+
+    // 出品公司
     { 
       title: "TMDB 出品公司", 
       functionName: "tmdbDiscoverByCompany", 
@@ -172,7 +194,8 @@ function formatItems(items, mediaType) {
         backdropPath: i.backdrop_path ? IMAGE + i.backdrop_path : undefined,
         releaseDate: i.release_date || i.first_air_date,
         rating: i.vote_average,
-        description: i.overview
+        description: i.overview,
+        popularity: i.popularity || 0
       };
     });
 }
@@ -203,6 +226,13 @@ async function getTrendingBestPoster(id, mediaType) {
   } catch {
     return null;
   }
+}
+
+// =============================
+// ⭐ 趋势排序工具函数
+// =============================
+function sortTrendingItems(items) {
+  return items.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
 }
 
 // =============================
@@ -260,12 +290,15 @@ async function tmdbDiscoverByCompany(params) {
     }));
 }
 
-// ⭐ 今日趋势（已升级高清无字海报）
+// =============================
+// ⭐ 今日趋势（电影+剧集 + 热度排序 + 高清无字海报）
 async function tmdbTrendingToday(params) {
-  const type = params.media_type || "all";
-  const items = await fetchTMDB(`/trending/${type}/day`, params);
+  const movieItems = await fetchTMDB("/trending/movie/day", params);
+  const tvItems = await fetchTMDB("/trending/tv/day", params);
+  let combined = [...movieItems, ...tvItems];
 
-  const formatted = formatItems(items);
+  let formatted = formatItems(combined);
+  formatted = sortTrendingItems(formatted);
 
   await Promise.all(
     formatted.map(async item => {
@@ -277,12 +310,15 @@ async function tmdbTrendingToday(params) {
   return formatted;
 }
 
-// ⭐ 本周趋势（已升级高清无字海报）
+// =============================
+// ⭐ 本周趋势（电影+剧集 + 热度排序 + 高清无字海报）
 async function tmdbTrendingWeek(params) {
-  const type = params.media_type || "all";
-  const items = await fetchTMDB(`/trending/${type}/week`, params);
+  const movieItems = await fetchTMDB("/trending/movie/week", params);
+  const tvItems = await fetchTMDB("/trending/tv/week", params);
+  let combined = [...movieItems, ...tvItems];
 
-  const formatted = formatItems(items);
+  let formatted = formatItems(combined);
+  formatted = sortTrendingItems(formatted);
 
   await Promise.all(
     formatted.map(async item => {
