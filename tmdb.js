@@ -8,7 +8,7 @@ var WidgetMetadata = {
   title: "TMDB资源模块",
   description: "趋势、热榜、平台一站式的资源模块",
   author: "白馆长",
-  version: "0.0.8",
+  version: "0.0.9",
   requiredVersion: "0.0.1",
 
   modules: [
@@ -154,18 +154,8 @@ async function fetchGenreMap(type) {
 }
 
 // =============================
-// 年份旁显示类型
+// 数据格式化函数（所有模块）
 // =============================
-async function appendGenresToYear(item, mediaType) {
-  const genreMap = await fetchGenreMap(mediaType);
-  let genres = (item.genre_ids || []).map(id => genreMap[id]).filter(Boolean);
-  let year = (item.release_date || item.first_air_date || '').slice(0, 4) || "未知";
-  if (genres.length) year += ' ' + genres.join('·');  // 中文间点分隔
-  return year;
-}
-
-// =============================
-// 数据格式化函数（非趋势模块）
 async function formatItems(items, mediaType) {
   const typeKey = mediaType || "movie";
   const genreMap = await fetchGenreMap(typeKey);
@@ -182,20 +172,19 @@ async function formatItems(items, mediaType) {
       }
       title = title || "未知";
 
-      // 年份旁加类型
-      let year = (i.release_date || i.first_air_date || '').slice(0,4) || "未知";
+      // 年份+类型放到 releaseDate
       const genres = (i.genre_ids || []).map(id => genreMap[id]).filter(Boolean);
-      if (genres.length) year += ' ' + genres.join('·');
+      const year = (i.release_date || i.first_air_date || '').slice(0,4) || "未知";
+      const releaseDateFinal = genres.length ? year + ' ' + genres.join('·') : year;
 
       return {
         id: i.id.toString(),
         type: "tmdb",
         mediaType: keyType,
         title,
-        year,
+        releaseDate: releaseDateFinal,  // Forward 默认显示年份，会显示类型
         posterPath: IMAGE + "w500" + i.poster_path,
         backdropPath: i.backdrop_path ? IMAGE + "w1280" + i.backdrop_path : undefined,
-        releaseDate: i.release_date || i.first_air_date,
         rating: i.vote_average,
         description: i.overview
       };
@@ -242,49 +231,11 @@ async function tmdbDiscoverByCompany(params) {
 async function tmdbTrendingToday(params) {
   const type = params.media_type || "all";
   const items = await fetchTMDB(`/trending/${type}/day`, params);
-  return Promise.all(items
-    .filter(i => i.poster_path && i.poster_path.trim() !== "" && i.media_type !== "person")
-    .map(async i => {
-      const mediaType = i.media_type || (i.title ? "movie" : "tv");
-      const yearWithGenres = await appendGenresToYear(i, mediaType);
-      const title = i.title || i.original_title || i.name || i.original_name || "未知";
-      return {
-        id: i.id.toString(),
-        type: "tmdb",
-        mediaType,
-        title,
-        year: yearWithGenres,
-        posterPath: i.backdrop_path ? IMAGE + "w1280" + i.backdrop_path : IMAGE + "w500" + i.poster_path,
-        backdropPath: i.backdrop_path ? IMAGE + "w1280" + i.backdrop_path : undefined,
-        releaseDate: i.release_date || i.first_air_date,
-        rating: i.vote_average,
-        description: i.overview
-      };
-    })
-  );
+  return await formatItems(items, type);
 }
 
 async function tmdbTrendingWeek(params) {
   const type = params.media_type || "all";
   const items = await fetchTMDB(`/trending/${type}/week`, params);
-  return Promise.all(items
-    .filter(i => i.poster_path && i.poster_path.trim() !== "" && i.media_type !== "person")
-    .map(async i => {
-      const mediaType = i.media_type || (i.title ? "movie" : "tv");
-      const yearWithGenres = await appendGenresToYear(i, mediaType);
-      const title = i.title || i.original_title || i.name || i.original_name || "未知";
-      return {
-        id: i.id.toString(),
-        type: "tmdb",
-        mediaType,
-        title,
-        year: yearWithGenres,
-        posterPath: i.backdrop_path ? IMAGE + "w1280" + i.backdrop_path : IMAGE + "w500" + i.poster_path,
-        backdropPath: i.backdrop_path ? IMAGE + "w1280" + i.backdrop_path : undefined,
-        releaseDate: i.release_date || i.first_air_date,
-        rating: i.vote_average,
-        description: i.overview
-      };
-    })
-  );
+  return await formatItems(items, type);
 }
